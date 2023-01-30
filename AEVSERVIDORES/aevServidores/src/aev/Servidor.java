@@ -20,16 +20,13 @@ public class Servidor {
 	
 	
 	public static void anyadirConexionLogs(String host,int puerto) throws IOException {
-		
 		 DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 		 Date date = new Date();
 		  System.out.println("Hora actual: " + dateFormat.format(date));
-		
 		  FileWriter fw = new FileWriter("logs.txt");
 			BufferedWriter bw = new BufferedWriter(fw);
 			FileReader fr = new FileReader("logs.txt");
 			BufferedReader br = new BufferedReader(fr);
-			
 			String linea = br.readLine();
 			
 			while(linea!=null){
@@ -37,6 +34,7 @@ public class Servidor {
 				System.out.println( "Fecha de conexion: coco");	
 				linea = br.readLine();
 			}
+			
 			bw.write("Fecha de conexion: " + dateFormat.format(date) + " host: " + host + " - " + " puerto: " + puerto);
 			bw.newLine();
 			br.close();

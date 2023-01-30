@@ -1,0 +1,9 @@
+/**
+ * 
+ */
+/**
+ * @author esalku
+ *
+ */
+module A {
+}
