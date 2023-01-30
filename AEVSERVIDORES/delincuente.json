@@ -1,0 +1,14 @@
+[{
+  "_id": {
+    "$oid": "63d7a1e5f4ad18744c25e5e9"
+  },
+  "alias": "=Luismi",
+  "nombreCompleto": "Urbano Cigarro Pablo",
+  "fechaNacimiento": 1234,
+  "imagen": "a.jpg"
+},{
+  "_id": {
+    "$oid": "63d7a6ccf4ad18744c25e5ea"
+  },
+  "alias": "putero"
+}]
