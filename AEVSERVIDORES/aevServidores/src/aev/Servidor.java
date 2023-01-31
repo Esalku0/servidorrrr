@@ -2,7 +2,6 @@ package aev;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,11 +14,36 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.net.ssl.HostnameVerifier;
 
-import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 public class Servidor {
 	
+	
+	public static void anyadirConexionLogs(String host,int puerto) throws IOException {
+		
+		 DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		 Date date = new Date();
+		  System.out.println("Hora actual: " + dateFormat.format(date));
+		
+		  FileWriter fw = new FileWriter("logs.txt");
+			BufferedWriter bw = new BufferedWriter(fw);
+			FileReader fr = new FileReader("logs.txt");
+			BufferedReader br = new BufferedReader(fr);
+			
+			String linea = br.readLine();
+			
+			while(linea!=null){
+				bw.write(linea);
+				System.out.println( "Fecha de conexion: coco");	
+				linea = br.readLine();
+			}
+			bw.write("Fecha de conexion: " + dateFormat.format(date) + " host: " + host + " - " + " puerto: " + puerto);
+			bw.newLine();
+			br.close();
+			fr.close();
+			bw.close();
+			fw.close();
+	}
 	
 
 	public static void main(String[] args) {
@@ -30,7 +54,7 @@ public class Servidor {
 			int puerto = Integer.parseInt(br.readLine());
 			br.close();
 			InetSocketAddress direccionTCPIP = new InetSocketAddress(host, puerto);
-
+			anyadirConexionLogs(host, puerto);
 			int backlog = 0; // Numero de conexiones pendientes que el servidor puede mantener en cola
 			HttpServer servidor = HttpServer.create(direccionTCPIP, backlog);
 

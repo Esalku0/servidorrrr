@@ -1,10 +1,17 @@
 package aev;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -62,6 +69,30 @@ public class GestorHTTP implements HttpHandler {
 		mongoClient.close();
 		return todosLosAliaString;
 	}
+	
+	
+	public void guardarLog(HttpExchange httpExchange,String tipo) throws IOException {
+		
+		 DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		 Date date = new Date();
+
+		
+        File fichero = new File ("logs.txt");
+        InetSocketAddress address = httpExchange.getRemoteAddress();
+        SimpleDateFormat sdf3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        if(fichero.createNewFile()) {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(fichero, true));
+            bw.write("Ip: "+ address + "   Timestamp: " + 	 dateFormat.format(date) + "tipo:"+ tipo + "\n");
+            bw.close();
+        }else {
+            BufferedWriter bw = new BufferedWriter(new FileWriter(fichero, true));
+            bw.write("Ip: "+ address + "   Timestamp: " + 	 dateFormat.format(date) + "tipo:"+ tipo + "\n");
+            bw.close();
+        }
+    }
+	
+	
 
 	public static void mostrarUnAlias(String alias1) {
 		System.out.println("EL ALIAS ES: " + alias1);
@@ -88,11 +119,13 @@ public class GestorHTTP implements HttpHandler {
 
 		if ("GET".equals(httpExchange.getRequestMethod())) {
 			requestParamValue = handleGetRequest(httpExchange);
-			System.out.println("EL HTTP ESE ES: " + httpExchange + requestParamValue);
+			guardarLog(httpExchange, "GET");
 			handleGETResponse(httpExchange, requestParamValue);
 		} else if ("POST".equals(httpExchange.getRequestMethod())) {
 			requestParamValue = handlePostRequest(httpExchange);
+			guardarLog(httpExchange, "POST");
 			handlePOSTResponse(httpExchange, requestParamValue);
+	
 		}
 	}
 
@@ -206,8 +239,6 @@ public class GestorHTTP implements HttpHandler {
 		String userID=sc.next();
 		System.out.println("Introduce tu contraseña: ");
 		String password=sc.next();
-			//String username = "mailpsp2003@gmail.com";
-			//String password = "nmgbgkxgrjlfbxqo";
 
 			Properties props = new Properties();
 			props.put("mail.smtp.auth", "true");

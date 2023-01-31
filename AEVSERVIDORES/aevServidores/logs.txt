@@ -1,1 +1,2 @@
-Fecha de conexion: 20:19:11 host: localhost -  puerto: 3738
+Fecha de conexion: 14:18:02 host: localhost -  puerto: 3787
+Ip: /127.0.0.1:61205   Timestamp: 14:18:29tipo:GET
