@@ -5,6 +5,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.Properties;
+import java.util.Scanner;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import javax.swing.JOptionPane;
+
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -14,6 +34,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import static com.mongodb.client.model.Filters.*;
@@ -23,7 +44,8 @@ public class GestorHTTP implements HttpHandler {
 	static String imagenString = "";
 	static String alias = "";
 	static String nombreCompleto = "";
-	static int fechaNacimiento = 0;
+	static String nacionalidad = "";
+	static String fechaNacimiento = "";
 
 	public static String mostrarTodosAlias() {
 		MongoClient mongoClient = new MongoClient("localhost", 27017);
@@ -42,21 +64,20 @@ public class GestorHTTP implements HttpHandler {
 	}
 
 	public static void mostrarUnAlias(String alias1) {
-		System.out.println("EL ALIAS ES: "+ alias1);
+		System.out.println("EL ALIAS ES: " + alias1);
 		MongoClient mongoClient = new MongoClient("localhost", 27017);
 		MongoDatabase database = mongoClient.getDatabase("CNI");
 		MongoCollection<Document> coleccion = database.getCollection("Delincuente");
-		
-		Bson query = eq("alias", alias1);
-		
-		MongoCursor<Document> cursor = coleccion.find(query).iterator();
-			
+
+		MongoCursor<Document> cursor = coleccion.find(Filters.eq("alias", alias1)).iterator();
+
 		while (cursor.hasNext()) {
 			JSONObject obj = new JSONObject(cursor.next().toJson());
-			imagenString = obj.getString("imagen");
-			fechaNacimiento = obj.getInt("fechaNacimiento");
+			nacionalidad = obj.getString("nacionalidad");
+			fechaNacimiento = obj.getString("fechaNacimiento");
 			nombreCompleto = obj.getString("nombreCompleto");
 			alias = obj.getString("alias");
+			imagenString = obj.getString("fotografia");
 		}
 		mongoClient.close();
 	}
@@ -64,6 +85,7 @@ public class GestorHTTP implements HttpHandler {
 	@Override
 	public void handle(HttpExchange httpExchange) throws IOException {
 		String requestParamValue = null;
+
 		if ("GET".equals(httpExchange.getRequestMethod())) {
 			requestParamValue = handleGetRequest(httpExchange);
 			System.out.println("EL HTTP ESE ES: " + httpExchange + requestParamValue);
@@ -77,12 +99,13 @@ public class GestorHTTP implements HttpHandler {
 	private String handleGetRequest(HttpExchange httpExchange) {
 		System.out.println("Recibida URI tipo GET: " + httpExchange.getRequestURI().toString());
 		if (httpExchange.getRequestURI().toString().contains("?")) {
+
 			return httpExchange.getRequestURI().toString();
-		}else {
+		} else {
+
 			return httpExchange.getRequestURI().toString().split("\\/")[2];
 		}
 	}
-	
 
 	private String handlePostRequest(HttpExchange httpExchange) {
 		System.out.println("Recibida URI tipo POST: " + httpExchange.getRequestBody().toString());
@@ -91,14 +114,14 @@ public class GestorHTTP implements HttpHandler {
 		BufferedReader br = new BufferedReader(isr);
 		StringBuilder sb = new StringBuilder();
 		String line = "";
-		System.out.println("ESPETEC: " + sb + line);
 		try {
 			while ((line = br.readLine()) != null) {
-				System.out.println(sb.toString());
+
 				sb.append(line);
-				System.out.println(line);
+
 			}
 			br.close();
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -106,48 +129,115 @@ public class GestorHTTP implements HttpHandler {
 	}
 
 	private void handleGETResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
-		System.out.println("COSITA: " + requestParamValue);
-		
+
 		OutputStream outputStream = httpExchange.getResponseBody();
 		String htmlResponse = "<html><body><h1>Parametro no reconocido</h1></body></html>";
 		if (requestParamValue.equals("mostrarTodos")) {
-			System.out.println("hola");
 			String aliasString = mostrarTodosAlias();
 			htmlResponse = "<html><body><h1>Todos los alias: </h1> <h3>" + aliasString + " </h3> </body></html>";
+
 		}
 		if (requestParamValue.contains("mostrarUno")) {
-			System.out.println("AAAAAAAAAAAAAAAAAAAA");
-			String alias = requestParamValue.split("\\=")[1];
-			System.out.println(alias);
-			System.out.println("VALE aca ESTAMOS");
-				mostrarUnAlias(alias);
-			System.out.println("VALE AQUI ESTAMOS");
-			
-			htmlResponse = "<html><body><h1>Info del alias en concreto: " + nombreCompleto + fechaNacimiento + imagenString + "</h1> </body></html>";
-			System.out.println(htmlResponse);
+
+			String alias = requestParamValue.split("=")[1];
+
+
+			mostrarUnAlias(alias);
+
+			htmlResponse = "<html><body><h1>Info del alias en concreto: <br>Nombre Completo: " + nombreCompleto
+					+ "<br>Fecha De Nacimiento: " + fechaNacimiento + "<br>Nacionalidad: " + nacionalidad + "</h1>"
+					+ "<img src=" + imagenString + " width='200' height='200'> </body></html>";
+
 		}
 		httpExchange.sendResponseHeaders(200, htmlResponse.length());
 		outputStream.write(htmlResponse.getBytes());
 		outputStream.flush();
 		outputStream.close();
 		System.out.println("Devuelve respuesta HTML: " + htmlResponse);
-	}
-	
-	
-	private void handlePOSTResponse(HttpExchange httpExchange, String requestParamValue) throws IOException {
-		OutputStream outputStream = httpExchange.getResponseBody();
-		System.out.println(requestParamValue);
-		if (requestParamValue.contains("/servidor/nuevo")) {
-			String valor1 = requestParamValue.split("\\?")[1];
-			System.out.println(valor1);
-			httpExchange.sendResponseHeaders(204, -1);
-		}
-		outputStream.flush();
-		outputStream.close();
-		System.out.println("Devuelve respuesta HTML: vacia");
+
+		nombreCompleto = "";
+		fechaNacimiento = "";
+		nacionalidad = "";
+		alias = "";
+		imagenString = "";
+
 	}
 
-	
-	
-	
+	private void handlePOSTResponse(HttpExchange httpExchange, String ficheroJson) throws IOException {
+		OutputStream outputStream = httpExchange.getResponseBody();
+
+		JSONObject obj = new JSONObject(ficheroJson);
+		nacionalidad = obj.getString("nacionalidad");
+		fechaNacimiento = obj.getString("fechaNacimiento");
+		nombreCompleto = obj.getString("nombreCompleto");
+		alias = obj.getString("alias");
+		imagenString = obj.getString("fotografia");
+
+		MongoClient mongoClient = new MongoClient("localhost", 27017);
+		MongoDatabase database = mongoClient.getDatabase("CNI");
+		MongoCollection<Document> coleccion = database.getCollection("Delincuente");
+		Document doc = new Document();
+		doc.append("alias", alias);
+		doc.append("nombreCompleto", nombreCompleto);
+		doc.append("fechaNacimiento", fechaNacimiento);
+		doc.append("nacionalidad", nacionalidad);
+		doc.append("fotografia", imagenString);
+		coleccion.insertOne(doc);
+		mongoClient.close();
+
+		String htmlResponse = "<html><body><h1>Info del delincuente guardado: <br>Nombre Completo: " + nombreCompleto
+				+ "<br>Fecha De Nacimiento: " + fechaNacimiento + "<br>Nacionalidad: " + nacionalidad + "</h1>"
+				+ "<img src=" + imagenString + " width='200' height='200'> </body></html>";
+
+		httpExchange.sendResponseHeaders(200, htmlResponse.length());
+		outputStream.write(htmlResponse.getBytes());
+		outputStream.flush();
+		outputStream.close();
+		String datosDelincuente = "Alias: " + alias + "\nNombre Completo: " + nombreCompleto + "\nFecha De Nacimiento: "
+				+ fechaNacimiento + "\nNacionaliad: " + nacionalidad + "\n Fotogtafía: " + imagenString;
+		mandaEmail("Nuevo Delincuente", datosDelincuente);
+	}
+
+	public static void mandaEmail(String asunto, String contenido) {
+		Scanner sc = new Scanner(System.in);
+		
+		System.out.println("//// NUEVO DELINCUENTE DETECTADO ////");
+		System.out.println("Introduce tu correo: ");
+		String userID=sc.next();
+		System.out.println("Introduce tu contraseña: ");
+		String password=sc.next();
+			//String username = "mailpsp2003@gmail.com";
+			//String password = "nmgbgkxgrjlfbxqo";
+
+			Properties props = new Properties();
+			props.put("mail.smtp.auth", "true");
+			props.put("mail.smtp.starttls.enable", "true");
+			props.put("mail.smtp.host", "smtp.gmail.com");
+			props.put("mail.smtp.port", "587");
+
+			Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(userID, password);
+				}
+			});
+
+			try {
+
+				Message message = new MimeMessage(session);
+
+				message.setRecipients(Message.RecipientType.TO, InternetAddress.parse("estanisaliagak@gmail.com"));
+				message.setSubject(asunto);
+				message.setText(contenido);
+
+				Transport.send(message);
+
+				System.out.println("Correo enviado correctamente");
+
+			} catch (MessagingException e) {
+				throw new RuntimeException(e);
+			}
+		
+
+	}
+
 }

@@ -1,17 +1,7 @@
 [{
-  "_id": {
-    "$oid": "63d7a1e5f4ad18744c25e5e9"
-  },
-  "alias": "Luismi",
-  "nombreCompleto": "Urbano Cigarro Pablo",
-  "fechaNacimiento": 1234,
-  "imagen": "a.jpg"
-},{
-  "_id": {
-    "$oid": "63d7feb956aceb1a1e953b34"
-  },
-  "alias": "Putero",
-  "nombreCompleto": "Juan Corbi Aleixandre",
-  "fechaNacimiento": 3123,
-  "imagen": "24342"
+  "alias": "puteroo",
+  "nombreCompleto": "Jaime Calvo",
+  "fechaNacimiento": "23/12/02",
+  "nacionalidad":"Rumanito",
+  "fotografia": "https://i.pinimg.com/736x/31/be/7c/31be7cf14e9e6b684683dbab92f21554--smoking-is-bad-background-hd-wallpaper.jpg"
 }]
